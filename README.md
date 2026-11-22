@@ -29,7 +29,7 @@ npx playwright install chromium
 npm run test:browser
 ```
 
-`TEST_URL` overrides the preview URL. For a system browser set the executable variable documented under [browser verification](docs/qa.md). The browser tests exercise private data fixtures in a separate test server. They never publish the fixture to the public programme. See [screenshots and measurements](docs/qa.md).
+`TEST_URL` overrides the preview URL. For a system browser set `BROWSER_PATH` to an installed Chromium-based browser. The browser tests exercise populated programme fixtures on a separate loopback server. See the [current browser verification and recordings](docs/menu-qa.md).
 
 ## Routes and publishing
 
@@ -43,7 +43,7 @@ Set the organizer-approved public origin in `src/content.ts` and rebuild before 
 
 ## Updating the event
 
-The release starts in pre-announcement. The organizer supplied the distinction **Keralam's First AWS Student Community Day** and the 2026 copyright notice in the shared footer. Dates, address, registration provider, lineup, named organizers and partners, contacts, social accounts and recap resources await confirmation. Update the typed records, run the tests and rebuild after each announcement. [Content guide and structural research](docs/content.md)
+The release starts in pre-announcement. The homepage identifies **AWS Student Builders Group at LBSCEK** as the organizer. The chapter record, college, image and website are maintained in `src/content.ts`. The organizer supplied the distinction **Keralam's First AWS Student Community Day** and the footer copyright. Dates, venue, registration, lineup, partners and contact destinations await confirmation. [Content guide](docs/content.md)
 
 ## Files
 
@@ -60,5 +60,5 @@ The release starts in pre-announcement. The organizer supplied the distinction *
 | `package.json`, `package-lock.json`, `tsconfig.json` | Reproducible dependencies, commands and TypeScript configuration |
 | `docs/` | Source references, organizer instructions, QA and browser screenshots |
 
-[Website V2 handoff](docs/website-v2.md) · [Brand assets and Figma references](docs/brand.md) · [Motion audit](docs/motion-audit.md) · [Content management](docs/content.md) · [Verification](docs/qa.md)
+[Current website handoff](docs/menu-refinement.md) · [Menu interaction research](docs/menu-reference.md) · [Brand assets and Figma references](docs/brand.md) · [Current verification](docs/menu-qa.md) · [Previous V2 handoff](docs/website-v2.md)
 

@@ -45,7 +45,7 @@ The website self-hosts the supplied IBM Plex Sans and Mono fonts in `public/bran
 
 The website header uses `/brand/primary.png`, a transparent pixel-identical copy of the published three-line lockup. The home-page illustration is the intact group from `social-media/22-website-hero.svg`, isolated with its existing parent coordinates into `/brand/hero-panel.svg`. Its outer grid, corner blocks, marks and original vector paths are preserved. The desktop divider in `/brand/wide-signature.svg` extracts the complete 2400 × 48 signature group in `footer-strips/formats/wide-banner.svg`. Narrow screens use the native 1280 × 90 signature, preserving square cells at both sizes. Cultural spot illustrations in the experience section are the published hero masters for chenda, screw-pine weaving, pookalam and palm. Inner pages also use the kasavu master. The technical-topic list uses live descriptions from the central event configuration.
 
-## Release provenance
+## V2 release provenance
 
 The original emblem belongs to the event identity. The organizer supplied the event name and first-edition wording. For website V2 the organizer specifically requested use of the official AWS mark in the header and footer and supplied the footer copyright line. The V6 handoff also records a request for informed local review of the Theyyam-inspired imagery before public circulation.
 
@@ -54,3 +54,7 @@ The separate AWS graphic in both placements is the original 1254 × 750 transpar
 The footer emblem is a byte-for-byte copy of `final-identity/04-symbol.svg`. The Mohiniyattam and architecture illustrations come from the respective `01-hero.svg` files under `cultural-art/`. The responsive mobile hero uses the same Shared Gaze panel as the desktop layout. Its caption sits beside the portrait below the call to action.
 
 The local records are `figma/active-source-frames.csv`, `figma/verification.md`, `research/asset-provenance.md`, `keralam-identity/cultural-research.md` and `brand-guidelines/using-builder-white.md`.
+
+## Current website placement
+
+The current header retains the original AWS press graphic. The compact footer uses the approved primary event lockup and responsive signature strip. The organizer’s pink emblem appears in its own acknowledgment immediately after the homepage hero. Its source file, spelling, checksum and desktop and mobile views are recorded in the [current handoff](menu-refinement.md).

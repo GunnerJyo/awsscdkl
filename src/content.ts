@@ -24,12 +24,20 @@ export type EventInfo = {
   copyrightNotice: string | null
 }
 
+export const organizingGroup = {
+  name: 'AWS Student Builders Group at LBSCEK',
+  institution: 'LBS College of Engineering, Kasaragod',
+  role: 'Event organizer',
+  website: 'https://awssbg.iedclbscek.in/',
+  logo: '/brand/organizer-lbscek.png',
+}
+
 export const event: EventInfo = {
   title: 'AWS Student Community Day Keralam 2027',
   distinction: "Keralam's First AWS Student Community Day",
   phase: 'pre-announcement', registrationStatus: 'unannounced', registrationUrl: null,
   dateLabel: null, startDate: null, endDate: null, venue: null, siteUrl: null,
-  contactUrl: null, socialLinks: [], organizers: [], eligibility: null, registrationNotes: null,
+  contactUrl: null, socialLinks: [], organizers: [organizingGroup], eligibility: null, registrationNotes: null,
   announcements: [], recap: [],
   copyrightNotice: '© 2026, Amazon Web Services, Inc. or its affiliates. All rights reserved.'
 }

@@ -1,4 +1,4 @@
-import { event, faqs, partners, registration, safeUrl, sessions, speakers, tracks } from './content'
+import { event, faqs, organizingGroup, partners, registration, safeUrl, sessions, speakers, tracks } from './content'
 import './home.css'
 
 const experiences = [
@@ -42,10 +42,24 @@ function EventHero() {
         <figcaption><strong>Shared Gaze</strong><span>Kathakali × Theyyam</span></figcaption>
       </figure>
     </div>
-    <picture><source media="(max-width:700px)" srcSet="/brand/signature.svg"/><img className="home-hero-strip" src="/brand/wide-signature.svg" width="2400" height="48" alt="" /></picture>
+    <div className="home-hero-divider" aria-hidden="true">
+      {['left', 'right'].map(side => <picture key={side} className={'home-strip-bank home-strip-' + side}>
+        <source media="(max-width:700px)" srcSet="/brand/signature.svg"/>
+        <img className="home-hero-strip" src="/brand/wide-signature.svg" width="2400" height="48" alt=""/>
+      </picture>)}
+    </div>
   </section>
 }
 
+function Organizer() {
+  return <section className="home-width home-organizer" aria-labelledby="organizer-name">
+    <p className="home-organizer-label">Organized by</p>
+    <div className="home-organizer-identity">
+      <img src={organizingGroup.logo} alt="" width="64" height="64" loading="lazy"/>
+      <div><h2 id="organizer-name">{organizingGroup.name}</h2><p>{organizingGroup.institution}</p></div>
+    </div>
+  </section>
+}
 function FirstEdition() {
   return <section className="home-width home-section home-editorial" aria-labelledby="first-edition">
     <div className="home-editorial-title" data-reveal><Topic text="The first edition"/><h2 id="first-edition">A first for Keralam.<br/>Built by community.</h2></div>
@@ -89,8 +103,8 @@ function Programme() {
   return <section className="home-programme" aria-labelledby="programme-heading"><div className="home-width home-section">
     <div data-reveal><Topic text="The programme"/><h2 id="programme-heading">People &amp; sessions.</h2></div>
     <div className="home-programme-links">
-      <a href="/speakers"><span>{speakers.length ? 'Meet the speakers' : 'Speakers to be announced'}</span><Arrow diagonal/></a>
-      <a href="/agenda"><span>{sessions.length ? 'Browse the agenda' : 'Agenda coming soon'}</span><Arrow diagonal/></a>
+      <a href="/speakers" data-reveal><span>{speakers.length ? 'Meet the speakers' : 'Speakers to be announced'}</span><Arrow diagonal/></a>
+      <a href="/agenda" data-reveal><span>{sessions.length ? 'Browse the agenda' : 'Agenda coming soon'}</span><Arrow diagonal/></a>
     </div>
   </div></section>
 }
@@ -99,7 +113,7 @@ function VisitorGuide() {
     <div data-reveal><Topic text="Attendee guide"/><h2 id="visit-heading">Plan your visit.</h2></div>
     <div className="home-visit-list">
       <article><h3>Venue &amp; travel</h3><p>{event.venue ? event.venue.name+' · '+event.venue.address : 'Venue to be announced. Directions and arrival information will be available once the venue is confirmed.'}</p><a className="home-rule-link" href="/venue">Visitor information <Arrow/></a></article>
-      <article><h3>Organizers &amp; partners</h3><p>{event.organizers.length ? event.organizers.map(o=>o.name).join(' · ') : 'Student community leaders bring these events to life.'} {partners.length ? 'Meet the partners supporting this edition.' : 'Partners for this edition will be announced here.'}</p><a className="home-rule-link" href="/partners">Community &amp; partners <Arrow/></a></article>
+      <article><h3>Organizers &amp; partners</h3><p>{partners.length ? 'Meet the partners supporting this edition.' : 'Partners for this edition will be announced here.'}</p><a className="home-rule-link" href="/partners">Community &amp; partners <Arrow/></a></article>
     </div>
   </section>
 }
@@ -122,7 +136,7 @@ function Registration() {
   </section>
 }
 export default function Home() {
-  return <div className="home-page"><EventHero/>
+  return <div className="home-page"><EventHero/><Organizer/>
     {event.announcements.length>0 && <section className="home-width home-section"><h2>Event updates</h2><ul>{event.announcements.map(a=><li key={a}>{a}</li>)}</ul></section>}
     <FirstEdition/><Experience/><Tracks/><Programme/><VisitorGuide/><AttendeeFaq/><Registration/>
   </div>

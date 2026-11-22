@@ -30,6 +30,9 @@
 .sub-wrap :is(.sub-prose,.sub-empty,.sub-session,.sub-results,.sub-faq) p, .sub-wrap address, .sub-prose li { line-height: 1.65; font-size: 1.0625rem; max-width: 65ch; }
 .sub-prose :is(p,address,ul) + :is(p,a,ul), .sub-empty .sub-link { margin-top: 16px; }
 .sub-prose address { font-style: normal; }
+.sub-wrap .sub-prose p.sub-trademark {font-size:.875rem;line-height:1.6;color:var(--sub-muted);margin-top:12px;}
+.sub-wrap .sub-organizer-note {color:var(--sub-muted);margin-bottom:24px;line-height:1.5;}
+.sub-organizer-note a {color:var(--sub-violet);font-weight:500;}
 .sub-link { color: var(--sub-violet); display: inline-flex;align-items:center;gap:.35rem;min-height:44px; text-decoration: underline; font-weight: 600; line-height: 1.4; }
 .sub-link span { flex:none;transition:transform var(--motion-fast) var(--ease-out); }
 .sub-link:is(:hover,:focus-visible) span {transform:translateX(3px);}
@@ -96,15 +99,24 @@
   .sub-disclosures summary:hover {color:var(--sub-violet);}
 }
 @media (prefers-reduced-motion:no-preference) {
-  @keyframes sub-motif-settle {from {transform:translateY(6px);} to {transform:none;} }
-  .sub-motif img {animation:sub-motif-settle var(--motion-enter) var(--ease-out) both;}
-  .sub-session {animation:sub-motif-settle var(--motion-ui) var(--ease-out) both;}
+  @keyframes sub-content-arrive {from {transform:translateY(var(--rise,10px));opacity:.92;} to {transform:none;opacity:1;} }
+  .sub-motif img {animation:sub-content-arrive var(--motion-enter) var(--ease-out) var(--motion-stagger) both;}
+  .sub-session,.sub-speaker {animation:sub-content-arrive var(--motion-ui) var(--ease-out) both;}
+  .sub-speaker:nth-child(2) {animation-delay:var(--motion-stagger);}
+  .sub-speaker:nth-child(3) {animation-delay:calc(2 * var(--motion-stagger));}
+  .sub-count-value {display:inline-block;--rise:4px;animation:sub-content-arrive var(--motion-fast) var(--ease-out);}
+  .sub-speaker img {transition:transform var(--motion-ui) var(--ease-out);}
+  .sub-speaker:focus-within img {transform:translateY(-3px);}
+  @media (hover:hover) and (pointer:fine) {
+    .sub-speaker:hover img {transform:translateY(-3px);}
+  }
   @supports (interpolate-size:allow-keywords) and selector(details::details-content) {
     :is(.sub-disclosures,.home-faq,.home-track-list) details::details-content {
       interpolate-size:allow-keywords;block-size:0;overflow:clip;
-      transition:block-size var(--motion-ui) var(--ease-out),content-visibility var(--motion-ui) allow-discrete;
+      opacity:.92;
+      transition:block-size var(--motion-ui) var(--ease-out),opacity var(--motion-ui) var(--ease-out),content-visibility var(--motion-ui) allow-discrete;
     }
-    :is(.sub-disclosures,.home-faq,.home-track-list) details[open]::details-content {block-size:auto;}
+    :is(.sub-disclosures,.home-faq,.home-track-list) details[open]::details-content {block-size:auto;opacity:1;}
   }
 }
 

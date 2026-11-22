@@ -4,6 +4,8 @@ Edit `src/content.ts` and rebuild the site. The initial public release contains 
 
 ## Event authority
 
+The organizer for this edition is **AWS Student Builders Group at LBSCEK**, LBS College of Engineering, Kasaragod. The `organizingGroup` record in `src/content.ts` supplies the home, About, Partners and FAQ views. The chapter’s attached logo and the local credit spelling are documented in the [organizer identity handoff](menu-refinement.md).
+
 The organizer's 21 November 2026 website brief confirms both **AWS Student Community Day Keralam 2027** and **Keralam's First AWS Student Community Day**. The supplied assets come from Cultural Fusion V6 in the Builder White Figma file. Use the [brand specification](brand.md) when updating artwork. AWS describes Student Community Days as community-led, one-day conferences run by student community leaders for learners across institutions. The programme page describes participation from age 18. Publish the edition's verified registration requirements when available. [AWS programme description](https://builder.aws.com/content/30YAgni22A4kIDUitLghmIPOlLJ/aws-student-community-days)
 
 ## Phase and registration

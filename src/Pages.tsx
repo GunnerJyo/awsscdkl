@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import {
-  event, faqs, tracks, speakers, sessions, partners, registration, safeUrl, publicImage,
+  event, faqs, organizingGroup, tracks, speakers, sessions, partners, registration, safeUrl, publicImage,
   programmeSource, filterSessions, emptyFilters, sessionDayKey, dayLabel, clockLabel, durationMinutes,
   type Speaker, type Session, type Filters
 } from './content'
@@ -20,8 +20,8 @@ function Intro({ title, lead, art }: { title: string; lead: string; art?: keyof 
 function Empty({ title, children, href, label }: { title: string; children: ReactNode; href: string; label: string }) {
   return <section className="sub-empty"><h2>{title}</h2><div><p>{children}</p><a className="sub-link" href={href}>{label} <span aria-hidden="true">→</span></a></div></section>
 }
-function BodyRow({ title, children }: { title: string; children: ReactNode }) {
-  return <section className="sub-row"><h2 data-reveal>{title}</h2><div className="sub-prose">{children}</div></section>
+function BodyRow({ title, children, id }: { title: string; children: ReactNode; id?: string }) {
+  return <section className="sub-row" id={id}><h2 data-reveal>{title}</h2><div className="sub-prose">{children}</div></section>
 }
 function ContactLink() {
   const href = safeUrl(event.contactUrl)
@@ -34,9 +34,9 @@ function Booking() {
 }
 function About() {
   return <><Intro title="About the event" lead={event.distinction} art="pookalam" />
-    <BodyRow title="Built by students"><p>{event.title} brings students from across Keralam together to share what they are building with the cloud. Bring the questions behind a class project, a tool you are exploring, or an application you want to build.</p><p>AWS Student Community Days are one-day conferences organized by Student Builder Group leaders and their core teams. AWS describes its role in the wider programme as one of several sponsors.</p><a className="sub-link" href={programmeSource}>Read about AWS Student Community Days <span aria-hidden="true">↗</span></a></BodyRow>
+    <BodyRow title="Built by students"><p>{event.title} brings students from across Keralam together to share what they are building with the cloud. Bring the questions behind a class project, a tool you are exploring, or an application you want to build.</p><p>AWS Student Community Days are one-day conferences organized by Student Builder Group leaders and their core teams. AWS describes its role in the wider programme as one of several sponsors.</p><a className="sub-link" href={programmeSource}>Read about AWS Student Community Days <span aria-hidden="true">↗</span></a><p className="sub-trademark">Amazon Web Services, AWS, and the AWS logo are trademarks of Amazon.com, Inc. or its affiliates.</p></BodyRow>
     <BodyRow title="Learning together"><p>Explore how cloud infrastructure, AI and developer tools work in practice. The topic guide is a starting point for discovery. Confirmed talks and their prerequisites will appear in the agenda.</p><a className="sub-link" href="/#tracks">Explore topic directions <span aria-hidden="true">→</span></a></BodyRow>
-    <BodyRow title="Organizing community"><p>Keralam’s gathering is part of the AWS Student Builder Groups community. These student-led campus groups host events and help people learn cloud skills through practical projects.</p>{event.organizers.length ? <ul>{event.organizers.map(o => <li key={o.name}><strong>{o.name}</strong> · {o.role}{safeUrl(o.website) && <> · <a href={safeUrl(o.website)!}>Community website</a></>}</li>)}</ul> : <p>The organizing groups for this edition will be named here once confirmed.</p>}<a className="sub-link" href={studentGroups}>Find an AWS Student Builder Group <span aria-hidden="true">↗</span></a><ContactLink /></BodyRow>
+    <BodyRow title="Organizing community" id="organizing-community"><p>Keralam’s gathering is part of the AWS Student Builder Groups community. These student-led campus groups host events and help people learn cloud skills through practical projects.</p>{event.organizers.length ? <ul>{event.organizers.map(o => <li key={o.name}><strong>{o.name}</strong> · {o.role}{o.name === organizingGroup.name && <> · {organizingGroup.institution}</>}{safeUrl(o.website) && <> · <a href={safeUrl(o.website)!}>Community website</a></>}</li>)}</ul> : <p>The organizing groups for this edition will be named here once confirmed.</p>}<a className="sub-link" href={studentGroups}>Find an AWS Student Builder Group <span aria-hidden="true">↗</span></a><ContactLink /></BodyRow>
     <BodyRow title="Registration"><Booking /></BodyRow></>
 }
 function SpeakerTile({ person }: { person: Speaker }) {
@@ -51,7 +51,7 @@ function Speakers() {
   const shown = speakers.filter(p => [p.name,p.organization,p.topic,p.role].join(' ').toLowerCase().includes(query.toLowerCase().trim()))
   return <><Intro title="Speakers" lead="Meet the people sharing their projects, ideas and engineering experience." art="chenda"/>
     {speakers.length ? <section className="sub-results"><label className="sub-input">Search speakers<input type="search" value={query} onChange={e => setQuery(e.target.value)} /></label>
-      <p className="sub-count" role="status">{shown.length} {shown.length === 1 ? 'speaker' : 'speakers'}</p>
+      <p className="sub-count" role="status"><span key={shown.length} className="sub-count-value">{shown.length} {shown.length === 1 ? 'speaker' : 'speakers'}</span></p>
       {shown.length ? <div className="sub-people">{shown.map(p => <SpeakerTile key={p.id} person={p} />)}</div> : <p>No speakers match this search. <button type="button" className="sub-action" onClick={() => setQuery('')}>Clear search</button></p>}</section> :
       <Empty title="Speakers to be announced" href="/agenda" label="Visit the agenda">Confirmed profiles will appear here with their session topics, backgrounds and links.</Empty>}</>
 }
@@ -107,12 +107,13 @@ function Agenda() {
         {usedTracks.length > 0 && <Filter label="Tracks" value={filters.track} options={usedTracks.map(t=>({value:t.id,label:t.title}))} change={v=>change('track',v)}/>}
         {rooms.length > 1 && <Filter label="Rooms" value={filters.room} options={rooms.map(value=>({value,label:value}))} change={v=>change('room',v)}/>}
         {types.length > 0 && <Filter label="Formats" value={filters.type} options={types.map(value=>({value,label:value}))} change={v=>change('type',v)}/>}</div>
-        <div className="sub-filter-summary"><p className="sub-count" role="status">{shown.length} {shown.length === 1 ? 'session' : 'sessions'} · India Standard Time</p>{Object.values(filters).some(Boolean) && <button type="button" className="sub-action" onClick={()=>setFilters(emptyFilters)}>Clear filters</button>}</div>
+        <div className="sub-filter-summary"><p className="sub-count" role="status"><span key={shown.length} className="sub-count-value">{shown.length} {shown.length === 1 ? 'session' : 'sessions'}</span> · India Standard Time</p>{Object.values(filters).some(Boolean) && <button type="button" className="sub-action" onClick={()=>setFilters(emptyFilters)}>Clear filters</button>}</div>
         {shown.length ? shown.map(s=><SessionCard key={s.id} session={s}/>) : <p>No sessions match your selection. Try a different topic, speaker or format.</p>}</section>}</>
 }
 function Partners() {
   const groups = unique(partners.map(p=>p.category))
   return <><Intro title="Partners" lead="The organizations and communities supporting this student-led gathering." art="pookalam" />
+    <p className="sub-organizer-note">Organized by <a href="/about#organizing-community">{organizingGroup.name}</a>.</p>
     {groups.length ? groups.map(g=><BodyRow key={g} title={g}><ul className="sub-partners">{partners.filter(p=>p.category===g).map(p=><li key={p.name}>{publicImage(p.logo) && <img src={publicImage(p.logo)} alt="" width="120" height="64" loading="lazy" />}{safeUrl(p.website) ? <a href={safeUrl(p.website)!}>{p.name}</a>:p.name}</li>)}</ul></BodyRow>) :
     <Empty title="Partners to be announced" href="/about" label="About the organizing community">Confirmed partners will be listed here with their approved roles.</Empty>}
     {safeUrl(event.contactUrl) && <BodyRow title="Partnership enquiries"><ContactLink /></BodyRow>}</>
@@ -129,7 +130,7 @@ function FAQ() {
   const [query,setQuery]=useState('')
   const shown=faqs.filter(f=>(f.question+' '+f.answer).toLowerCase().includes(query.toLowerCase().trim()))
   return <><Intro title="Frequently asked questions" lead="Answers about attending, registration and the programme." />
-    <section className="sub-faq"><div><label className="sub-input">Search questions<input type="search" value={query} onChange={e=>setQuery(e.target.value)}/></label><span role="status" className="sub-count">{shown.length} {shown.length===1?'question':'questions'}</span></div>
+    <section className="sub-faq"><div><label className="sub-input">Search questions<input type="search" value={query} onChange={e=>setQuery(e.target.value)}/></label><span role="status" className="sub-count"><span key={shown.length} className="sub-count-value">{shown.length} {shown.length===1?'question':'questions'}</span></span></div>
     <div className="sub-disclosures">{shown.map(f=><details key={f.question}><summary>{f.question}</summary><p>{f.answer}</p></details>)}{!shown.length && <p>No questions match your search. <button className="sub-action" onClick={()=>setQuery('')} type="button">Clear search</button></p>}</div></section>
     {safeUrl(event.contactUrl) && <BodyRow title="Contact the team"><ContactLink /></BodyRow>}</>
 }

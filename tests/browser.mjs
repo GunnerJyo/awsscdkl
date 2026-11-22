@@ -10,7 +10,7 @@ const title = 'AWS Student Community Day Keralam 2027'
 const widths = [320, 360, 375, 390, 414, 430, 768, 1024, 1280, 1440, 1920]
 const routes = ['/', '/about', '/speakers', '/agenda', '/partners', '/venue', '/faq', '/code-of-conduct', '/privacy']
 const screenshots = process.env.UPDATE_SCREENSHOTS === '1'
-const captureDir = resolve('docs/screenshots')
+const captureDir = resolve(process.env.CAPTURE_DIR || 'docs/screenshots')
 const axePath = process.env.AXE_SCRIPT
 const executablePath = process.env.BROWSER_PATH || (process.platform === 'win32' && existsSync('C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe') ? 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe' : undefined)
 const browser = await chromium.launch({ executablePath, headless: true, args: ['--disable-background-networking'] })
@@ -65,6 +65,9 @@ async function checkRoutes() {
       assert.equal(state.missingAlt, 0, route)
       assert.ok(await page.locator('footer').getByText('© 2026, Amazon Web Services, Inc. or its affiliates. All rights reserved.',{exact:true}).isVisible(),route+' copyright')
       assert.ok(await page.locator('footer a[href="/code-of-conduct"]').isVisible(),route+' footer conduct link')
+      assert.ok(await page.locator('footer a[href]').count() <= 4,route+' footer link count')
+      assert.ok(await page.locator('header .menu-trigger').isVisible(),route+' main menu trigger')
+      assert.ok(await page.locator('header .aws-mark').isVisible(),route+' AWS mark')
       for (const link of state.links) if (new URL(link).origin === new URL(base).origin) links.add(link)
       if (route === '/') await shot('home-' + width)
       if (width === 1440 && route === '/') await shot('home-full', true)
@@ -101,6 +104,7 @@ async function checkInteractions() {
   await page.keyboard.press('Enter')
   assert.equal(await menu.getAttribute('aria-expanded'),'true')
   assert.ok(await page.locator('#site-menu a[href="/code-of-conduct"]').isVisible(),'Menu conduct link')
+  await page.waitForFunction(()=>document.activeElement===document.querySelector('#site-menu a[href]'))
   await checkAccessibility('/ (open menu)',390)
   await page.keyboard.press('Tab')
   assert.ok(await page.locator('#site-menu :focus').count())
@@ -134,6 +138,37 @@ async function checkInteractions() {
     assert.ok(await proposed.evaluate(node=>node.open),'Agenda proposed-track disclosure should open')
     await shot('agenda-mobile')
   }
+}
+async function checkMenuMotion() {
+  await page.emulateMedia({reducedMotion:'no-preference'})
+  for (const width of [390,1440]) {
+    await page.setViewportSize({width,height:844})
+    await go(base+'/')
+    const result=await page.evaluate(async()=>{
+      const trigger=document.querySelector('.menu-trigger')
+      const panel=document.querySelector('#site-menu')
+      async function measure(finalState) {
+        trigger.click()
+        const clips=new Set()
+        const start=performance.now()
+        do {
+          await new Promise(requestAnimationFrame)
+          clips.add(getComputedStyle(panel).clipPath)
+          if (performance.now()-start>2000) throw Error('Menu did not settle at '+finalState)
+        } while(panel.dataset.state!==finalState)
+        return {frames:clips.size,focus:document.activeElement,expanded:trigger.getAttribute('aria-expanded')}
+      }
+      const opened=await measure('open')
+      const closed=await measure('closed')
+      return {openFrames:opened.frames,closeFrames:closed.frames,entered:opened.focus===panel.querySelector('a'),
+        restored:closed.focus===trigger,opened:opened.expanded,closed:closed.expanded}
+    })
+    assert.ok(result.openFrames>2 && result.closeFrames>2,'Visible opening and closing at '+width)
+    assert.ok(result.entered && result.restored,'Keyboard focus follows menu state at '+width)
+    assert.equal(result.opened,'true')
+    assert.equal(result.closed,'false')
+  }
+  await page.emulateMedia({reducedMotion:'reduce'})
 }
 // Inject test-only records in a loopback Vite server. Public source and output stay untouched.
 async function checkPublishedContent() {
@@ -202,6 +237,7 @@ try {
   if (process.env.PROGRAMME_ONLY !== '1') {
     await checkRoutes()
     await checkInteractions()
+    await checkMenuMotion()
   }
   await checkPublishedContent()
   assert.deepEqual(errors,[])
