@@ -3,7 +3,9 @@ import { after, test } from 'node:test'
 import { createServer } from 'vite'
 
 const vite = await createServer({ configFile: false, appType: 'custom', optimizeDeps: { noDiscovery: true }, server: { middlewareMode: true, hmr: false } })
-const { event, speakers, tracks, sessions, partners, safeUrl, publicImage, registration, filterSessions, emptyFilters, sessionDayKey, clockLabel, durationMinutes } = await vite.ssrLoadModule('/src/content.ts')
+const { event, speakers, tracks, sessions, safeUrl, publicImage, registration, filterSessions, emptyFilters, sessionDayKey, clockLabel, durationMinutes } = await vite.ssrLoadModule('/src/content.ts')
+const { partnerRegistry:partners } = await vite.ssrLoadModule('/organizer/partners.ts')
+const { partnerGroups } = await vite.ssrLoadModule('/src/partner-model.ts')
 after(() => vite.close())
 
 test('published programme records have stable links and explicit event-local instants', () => {
@@ -59,5 +61,50 @@ test('agenda combines search terms, rooms, dates and track IDs in event-local ti
   assert.deepEqual(filterSessions(choices,{...emptyFilters,query:'contributor build',day:'2027-01-02',room:'A',track:'cloud',type:'Talk'},people).map(s=>s.id),['early'])
   assert.deepEqual(filterSessions(choices,{...emptyFilters,query:'contributor',room:'B'},people),[])
   assert.deepEqual(choices.map(s=>s.id),['later','early'])
+})
+
+
+const base = { id:'sample', name:'Sample group', category:'Community Partners', reviewGroup:'Community groups',
+  sortOrder:1, status:'pending', edition:2027, approvedForDisplay:false, approvedForPrototype:true, logoProfile:'badge' }
+
+test('prototype-only permission is distinct from role confirmation and edition-specific public display', () => {
+  const waiting = [
+    base, {...base,id:'b',status:'confirmed'}, {...base,id:'c',approvedForDisplay:true},
+    {...base,id:'d',category:null,status:'confirmed',approvedForDisplay:true},
+    {...base,id:'e',edition:2026,status:'confirmed',approvedForDisplay:true},
+    {...base,id:'f',approvedForPrototype:false},
+  ]
+  assert.deepEqual(partnerGroups(waiting), [])
+  assert.deepEqual(partnerGroups(waiting,true)[0].entries.map(e=>e.id), ['b','c','d','sample'])
+})
+
+test('approved current roles sort consistently and a combined role uses one entry', () => {
+  const row = {...base,status:'confirmed',approvedForDisplay:true}
+  const groups=partnerGroups([
+    {...row, id:'combined', category:'Ecosystem & Venue Partner',sortOrder:40},
+    {...row, id:'second',sortOrder:30}, {...row,id:'first',sortOrder:10}
+  ])
+  assert.deepEqual(groups.map(g=>g.heading),['Community Partners','Ecosystem & Venue Partner'])
+  assert.deepEqual(groups.flatMap(g=>g.entries.map(e=>e.id)),['first','second','combined'])
+})
+
+test('historical credit requires edition-specific publication approval, prior year and approved context', () => {
+  const history={...base,status:'historical', category:null, historicalYear:2026,
+    historicalAcknowledgment:'Collaborated on planning in 2026.',approvedForDisplay:true}
+  for (const change of [{approvedForDisplay:false},{edition:2026},{historicalYear:2027},{historicalYear:undefined},{historicalAcknowledgment:' '}]) {
+    assert.deepEqual(partnerGroups([{...history,...change}]),[])
+  }
+  const [group]=partnerGroups([history])
+  assert.equal(group.heading,'Historical collaborations')
+  assert.equal(group.entries[0].historicalAcknowledgment,history.historicalAcknowledgment)
+})
+
+test('logo destinations use local filenames and web destinations accept validated HTTPS', () => {
+  const [group]=partnerGroups([{...base,logo:'group.webp',logoSmall:'group-512.webp',website:'javascript:test'}],true)
+  assert.equal(group.entries[0].logo,'/community-logos/group.webp')
+  assert.equal(group.entries[0].logoSmall,'/community-logos/group-512.webp')
+  assert.equal(group.entries[0].website,undefined)
+  assert.throws(()=>partnerGroups([{...base,logo:'../private.png'}],true),/Invalid logo/)
+  assert.equal(partnerGroups([base],true)[0].entries[0].logo,undefined)
 })
 

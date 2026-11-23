@@ -1,6 +1,14 @@
 import { renderToString } from 'react-dom/server'
 import { App } from './App'
 import { event, speakers, safeUrl } from './content'
+import { partnerRegistry } from '../organizer/partners'
+import { partnerGroups } from './partner-model'
+import type { PartnerRecord } from './partner-model'
+
+export function partnerAssets(preview = false) {
+  return new Set(partnerGroups(partnerRegistry, preview)
+    .flatMap(group => group.entries.flatMap(entry => [entry.logo,entry.logoSmall].filter(Boolean))))
+}
 
 const pages:Record<string,[string,string]> = {
   '/': [event.title, "Keralam's first AWS Student Community Day brings student builders across Keralam together to learn about cloud technology, share projects and meet their communities."],
@@ -24,26 +32,30 @@ export function escapeHtml(s:string) {
 function jsonLD(data:object) {
   return '<script type="application/ld+json">'+JSON.stringify(data).replace(/</g,'\\u003c')+'</script>'
 }
-export function renderRoute(path:string) {
+export function renderRoute(path:string, registry:PartnerRecord[] = partnerRegistry, preview = false) {
   const speaker = speakers.find(s => path==='/speakers/'+s.id)
   const isPage = routes.includes(path)
   const [label,description] = pages[path] ?? (speaker ? [speaker.name,speaker.bio || 'Speaker profile and published sessions.'] : ['Page not found','Return to the event homepage or browse the programme.'])
   const title = escapeHtml(path==='/' ? label : label+' | '+event.title)
   const desc=escapeHtml(description)
-  const canonical = origin && isPage ? origin + path : null
+  const canonical = origin && isPage && !preview ? origin + path : null
   const image=escapeHtml((origin || '')+'/brand/social-preview.png')
   const name=escapeHtml(event.title)
   let head = '<title>'+title+'</title><meta name="description" content="'+desc+'"><meta property="og:title" content="'+title+'"><meta property="og:description" content="'+desc+'"><meta property="og:site_name" content="'+name+'"><meta property="og:type" content="website"><meta property="og:image" content="'+image+'"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="'+name+' with the Shared Gaze cultural emblem"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="'+title+'"><meta name="twitter:description" content="'+desc+'"><meta name="twitter:image" content="'+image+'">'
   head += '<link rel="preload" as="font" type="font/woff2" href="/brand/fonts/IBMPlexSans-core.woff2" crossorigin>'
-  if (path==='/') head += '<link rel="preload" as="image" href="/brand/hero-panel.svg" fetchpriority="high">'
+  if (path === '/') {
+    head += '<link rel="preload" as="image" media="(width > 700px)" href="/brand/shared-gaze-display.svg" fetchpriority="high">'
+    head += '<link rel="preload" as="image" media="(width <= 700px)" href="/brand/shared-gaze-standard.svg" fetchpriority="high">'
+  }
   if (canonical) head += '<link rel="canonical" href="'+escapeHtml(canonical)+'"><meta property="og:url" content="'+escapeHtml(canonical)+'">'
-  if (!isPage) head += '<meta name="robots" content="noindex">'
+  if (!isPage || preview) head += '<meta name="robots" content="noindex,nofollow">'
   if (path==='/' && canonical) {
     head += jsonLD({'@context':'https://schema.org','@type':'WebSite',name:event.title,url:canonical})
     if (event.startDate && event.venue?.name && event.venue.address && Number.isFinite(Date.parse(event.startDate))) {
       head += jsonLD({'@context':'https://schema.org','@type':'Event',name:event.title,startDate:event.startDate,...(event.endDate?{endDate:event.endDate}:{}),url:canonical,location:{'@type':'Place',name:event.venue.name,address:event.venue.address},description,image:origin+'/brand/social-preview.png'})
     }
   }
-  return { html:renderToString(<App path={path}/>), head, status:isPage ? 200 : 404 }
+  const groups = path === '/' || path === '/partners' ? partnerGroups(registry, preview) : []
+  return { html:renderToString(<App path={path} partnerGroups={groups} partnerPreview={preview}/>), head, status:isPage ? 200 : 404 }
 }
 

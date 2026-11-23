@@ -1,7 +1,7 @@
 import http from 'node:http'
 import {readFile,stat} from 'node:fs/promises'
 import {resolve,extname,sep} from 'node:path'
-const root=resolve('dist')
+const root=resolve(process.argv.includes('--prototype') ? 'dist-prototype' : 'dist')
 const port=Number(process.env.PORT || 4173)
 const types={'.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript','.svg':'image/svg+xml','.png':'image/png','.woff2':'font/woff2','.xml':'application/xml','.txt':'text/plain; charset=utf-8','.jpg':'image/jpeg','.webp':'image/webp'}
 const headers={'X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','X-Frame-Options':'DENY','Permissions-Policy':'camera=(), microphone=(), geolocation=()','Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'none'"}

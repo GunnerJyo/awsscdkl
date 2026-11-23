@@ -14,7 +14,6 @@ export type Session = {
   id: string; title: string; description: string; start: string; end: string
   type: string; room?: string; trackId?: string; speakerIds: string[]
 }
-export type Partner = { name: string; category: string; website?: string; logo?: string }
 export type EventInfo = {
   title: string; distinction: string; phase: Phase; registrationStatus: RegistrationStatus
   registrationUrl: string | null; dateLabel: string | null; startDate: string | null; endDate: string | null
@@ -52,7 +51,6 @@ export const tracks: Track[] = [
 ]
 export const speakers: Speaker[] = []
 export const sessions: Session[] = []
-export const partners: Partner[] = []
 export const timeZone = 'Asia/Kolkata'
 
 /** Approved destinations must be absolute HTTPS URLs without embedded credentials. */

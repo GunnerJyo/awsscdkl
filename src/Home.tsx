@@ -1,143 +1,150 @@
-import { event, faqs, organizingGroup, partners, registration, safeUrl, sessions, speakers, tracks } from './content'
+import { event, faqs, organizingGroup, registration, safeUrl, sessions, speakers, tracks } from './content'
+import { PartnerShowcase } from './PartnerShowcase'
+import type { PartnerGroup } from './partner-model'
+import { AgendaExplorer, SpeakerCards } from './Programme'
 import './home.css'
 
 const experiences = [
-  { title: 'Learn', detail: 'Hear how developers approach the decisions behind cloud applications.', art: 'chenda' },
-  { title: 'Build', detail: 'Explore the tools and techniques that turn a student project into working software.', art: 'reed' },
-  { title: 'Connect', detail: 'Meet other builders and find communities to keep learning with after the event.', art: 'pookalam' },
-  { title: 'Explore', detail: 'Discover ideas across cloud infrastructure, artificial intelligence and developer tools.', art: 'palm' },
+  { title: 'Learn', detail: 'Get closer to the engineering decisions behind the cloud applications you use.', art: 'chenda' },
+  { title: 'Build', detail: 'Explore how an idea moves from an early experiment to working software.', art: 'reed' },
+  { title: 'Connect', detail: 'Find fellow student builders, trade notes and meet your local cloud community.', art: 'pookalam' },
+  { title: 'Discover', detail: 'Follow new questions into AI, serverless systems and modern development.', art: 'palm' },
 ]
 
 function Arrow({ diagonal = false }: { diagonal?: boolean }) {
-  return <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" className="home-arrow">
-    <path d={diagonal ? 'M5 19 19 5M6 5h13v13' : 'M3 12h17m-7-7 7 7-7 7'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="square" strokeLinejoin="miter" />
+  return <svg className="home-arrow" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <path d={diagonal ? 'M5 19 19 5M5 5h14v14' : 'M3 12h17m-7-7 7 7-7 7'} stroke="currentColor" strokeWidth="1.8" />
   </svg>
-}
-function Topic({ text }: { text: string }) {
-  return <p className="home-eyebrow">{text}</p>
 }
 function EventHero() {
   const access = registration()
-  const after = event.phase === 'post-event'
-  const [lead, programme, location] = [
-    event.title.split(' ').slice(0, 2).join(' '),
-    event.title.split(' ').slice(2, 4).join(' '),
-    event.title.split(' ').slice(4).join(' '),
-  ]
+  const title = event.title.split(' ')
   return <section className="home-hero" aria-labelledby="event-heading">
-    <div className="home-hero-layout home-width">
+    <div className="home-width home-hero-layout">
       <div className="home-hero-copy">
-        <Topic text={event.distinction} />
-        <h1 id="event-heading"><span>{lead}</span>{' '}<span>{programme}</span>{' '}<span>{location}</span></h1>
-        <p className="home-intro">Meet Keralam’s AWS Student Builder Groups community for a day of cloud projects, shared ideas and conversations with fellow builders.</p>
-        {(event.dateLabel || event.venue) && <p className="home-event-details">{[event.dateLabel,event.venue?.name].filter(Boolean).join(' · ')}</p>}
+        <p className="home-kicker hero-distinction"><img src="/brand/step-connector.svg" alt="" width="24" height="14"/>{event.distinction}</p>
+        <h1 id="event-heading"><span>{title.slice(0, 2).join(' ')}</span>{' '}<span>{title.slice(2, 4).join(' ')}</span>{' '}<span>{title.slice(4).join(' ')}</span></h1>
+        <p className="home-intro">A student-led gathering for cloud and AI builders across Keralam. Bring a project, a question or a story to share.</p>
         <div className="home-actions">
-          <a className="home-button" href={access.href || (after ? '#registration' : '#experience')}>{access.href ? access.label : after ? 'Event recap' : 'Explore the event'} <Arrow/></a>
-          <a className="home-text-link" href={after ? '/agenda' : '#tracks'}>{after ? 'Browse the agenda' : 'View tracks'} <span aria-hidden="true">↓</span></a>
+          <a className="home-button" href={access.href || '#registration'}>{access.href ? access.label : event.phase === 'post-event' ? 'Event recap' : 'Registration details'} <Arrow/></a>
+          <a className="home-text-link" href="#agenda">View agenda <span aria-hidden="true">↓</span></a>
         </div>
-        {!access.href && <p className="home-status"><span aria-hidden="true" />{access.label}</p>}
       </div>
       <figure className="home-art">
-        <img src="/brand/hero-panel.svg" width="451" height="480" fetchPriority="high" alt="Shared Gaze, a green Kathakali face and a vermilion Theyyam-inspired face sharing one sightline" />
+        <div className="home-print-art">
+          <picture><source media="(max-width:700px)" srcSet="/brand/shared-gaze-standard.svg" width="512" height="512"/>
+            <img src="/brand/shared-gaze-display.svg" width="720" height="720" fetchPriority="high" alt="Shared Gaze pairs a green Kathakali face with a vermilion Theyyam-inspired face."/></picture>
+        </div>
         <figcaption><strong>Shared Gaze</strong><span>Kathakali × Theyyam</span></figcaption>
       </figure>
     </div>
-    <div className="home-hero-divider" aria-hidden="true">
-      {['left', 'right'].map(side => <picture key={side} className={'home-strip-bank home-strip-' + side}>
-        <source media="(max-width:700px)" srcSet="/brand/signature.svg"/>
-        <img className="home-hero-strip" src="/brand/wide-signature.svg" width="2400" height="48" alt=""/>
-      </picture>)}
+    <div className="home-dateline"><dl className="home-width">
+      <div><dt>Event date</dt><dd>{event.dateLabel || 'To be announced'}</dd></div>
+      <div><dt>Venue</dt><dd><a href="/venue">{event.venue?.name || 'Venue to be announced'} <Arrow diagonal/></a></dd></div>
+      <div><dt>Registration</dt><dd><a href="#registration">{access.label} <Arrow diagonal/></a></dd></div>
+    </dl></div>
+  </section>
+}
+
+function Introduction() {
+  return <section className="home-width home-section home-introduction" aria-labelledby="intro-heading">
+    <div className="home-story-title" data-reveal><p className="home-kicker">About the gathering</p>
+      <h2 id="intro-heading">A new chapter for student builders in Keralam.</h2></div>
+    <div className="home-story-body" data-reveal>
+      <img src="/brand/mohiniyattam.svg" width="110" height="110" alt="Mohiniyattam dancer" loading="lazy"/>
+      <p>Keralam’s first AWS Student Community Day brings campus cloud communities into the same room. Share what you’ve learned, hear how others build and find people to keep learning with.</p>
+      <a className="home-text-link" href="/about">About the event <Arrow/></a>
     </div>
+  </section>
+}
+
+function Experience() {
+  return <section id="experience" className="home-experience" aria-labelledby="experience-heading"><div className="home-width home-section">
+    <h2 id="experience-heading" data-reveal>What to expect<span>.</span></h2>
+    <div className="home-experience-list">{experiences.map(item =>
+      <article className="home-experience-item" data-reveal key={item.title}>
+        <div className="home-experience-art"><img src={'/brand/' + item.art + '.svg'} alt="" width="82" height="82" loading="lazy"/></div>
+        <h3>{item.title}</h3><p>{item.detail}</p>
+      </article>
+    )}</div>
+  </div></section>
+}
+
+function SpeakerLineup() {
+  return <section className="home-width home-section home-speakers" id="speakers" aria-labelledby="speakers-heading">
+    <div className="home-section-heading" data-reveal><h2 id="speakers-heading">Speakers<span>.</span></h2>
+      <a className="home-text-link" href="/speakers">Speaker directory <Arrow/></a></div>
+    {speakers.length ? <SpeakerCards/> :
+      <div className="home-speaker-notice" data-reveal>
+        <div className="home-speaker-art" aria-hidden="true"><img src="/brand/chenda.svg" width="120" height="120" loading="lazy" alt=""/></div>
+        <div><h3>Speakers to be announced</h3><p>The organizing team will introduce each speaker here, with their background and the ideas they’ll bring to the programme.</p></div>
+      </div>}
+  </section>
+}
+
+function Tracks() {
+  return <section id="tracks" className="home-track-section" aria-labelledby="track-heading"><div className="home-width home-section home-tracks">
+    <div className="home-track-intro" data-reveal><p className="home-kicker">Proposed themes</p><h2 id="track-heading">Event tracks<span>.</span></h2>
+      <p>Explore the topics under consideration. Confirmed sessions will appear in the agenda.</p></div>
+    <div className="home-track-list">{tracks.map(track =>
+      <details key={track.id} className="home-track">
+        <summary>{track.title}<span className="home-toggle" aria-hidden="true"/></summary>
+        <div className="home-answer"><p>{track.description}</p>{sessions.some(s => s.trackId === track.id) &&
+          <a className="home-text-link" href={'/agenda?track=' + encodeURIComponent(track.id)}>Browse sessions <Arrow/></a>}</div>
+      </details>
+    )}</div>
+  </div></section>
+}
+
+function Agenda() {
+  return <section id="agenda" className="home-width home-section home-agenda" aria-labelledby="agenda-heading">
+    <div className="home-section-heading" data-reveal><h2 id="agenda-heading">Event agenda<span>.</span></h2>
+      <a className="home-text-link" href="/agenda">Full agenda <Arrow/></a></div>
+    {sessions.length ? <div data-agenda-island=""><AgendaExplorer/></div> :
+      <div className="home-agenda-pending" data-reveal><div className="home-agenda-clock"><span>Programme time</span><b>IST</b><span>UTC +05:30</span></div>
+        <div><h3>Agenda coming soon</h3><p>Session times, speakers and room details will appear here when the programme is announced.</p>
+          <a href="#tracks" className="home-text-link">Explore the proposed tracks <Arrow/></a></div></div>}
   </section>
 }
 
 function Organizer() {
-  return <section className="home-width home-organizer" aria-labelledby="organizer-name">
-    <p className="home-organizer-label">Organized by</p>
-    <div className="home-organizer-identity">
-      <img src={organizingGroup.logo} alt="" width="64" height="64" loading="lazy"/>
-      <div><h2 id="organizer-name">{organizingGroup.name}</h2><p>{organizingGroup.institution}</p></div>
-    </div>
-  </section>
-}
-function FirstEdition() {
-  return <section className="home-width home-section home-editorial" aria-labelledby="first-edition">
-    <div className="home-editorial-title" data-reveal><Topic text="The first edition"/><h2 id="first-edition">A first for Keralam.<br/>Built by community.</h2></div>
-    <figure className="home-editorial-art" data-reveal>
-      <img src="/brand/mohiniyattam.svg" alt="A Mohiniyattam dancer in a cream and gold costume" width="480" height="480" loading="lazy"/>
-    </figure>
-    <div className="home-editorial-body" data-reveal>
-      <p>One day for Keralam’s campus cloud communities to learn from one another.</p>
-      <p>Bring the question behind your latest build. Meet students tackling similar problems, hear from practitioners and find a community to keep building with.</p>
-      <a className="home-rule-link" href="/about">About the gathering <Arrow/></a>
-    </div>
-  </section>
-}
-function Experience() {
-  return <section id="experience" className="home-experience" aria-labelledby="experience-heading"><div className="home-width home-section">
-    <div data-reveal><Topic text="The experience"/><h2 id="experience-heading">What brings us together.</h2></div>
-    <div className="home-experience-list">{experiences.map(item=>
-      <div className="home-experience-item" data-reveal key={item.title}>
-        <img src={'/brand/'+item.art+'.svg'} alt="" loading="lazy" width="84" height="84"/>
-        <h3>{item.title}</h3><p>{item.detail}</p>
-      </div>
-    )}</div>
+  return <section className="home-organizer" id="organizer" aria-labelledby="organizer-heading"><div className="home-width home-organizer-inner">
+    <img src={organizingGroup.logo} alt="" width="84" height="84" loading="lazy"/>
+    <div><p className="home-kicker">Organized by</p><h2 id="organizer-heading">{organizingGroup.name}</h2><p>{organizingGroup.institution}</p></div>
+    <div><p>The student community bringing this edition together in Keralam.</p>
+      <a className="home-text-link" href="/about#organizing-community">Meet the organizers <Arrow/></a></div>
   </div></section>
 }
-function Tracks() {
-  return <section id="tracks" className="home-width home-section home-tracks" aria-labelledby="track-heading">
-    <div className="home-track-intro" data-reveal><Topic text="Technical tracks"/><h2 id="track-heading">Find your <br/>next topic.</h2>
-      <p>Explore the proposed themes. Confirmed sessions and their tracks will appear in the programme.</p>
-      <a className="home-rule-link" href="/agenda">View the agenda <Arrow/></a>
+
+function Registration() {
+  const access = registration()
+  const after = event.phase === 'post-event'
+  const detail = event.registrationNotes || (after ? 'Explore the programme and published resources from this edition.' : access.href ? 'Visit the official registration provider to see pass details and complete your booking.' : event.registrationStatus === 'closed' || event.phase === 'registration-closed' || event.registrationStatus === 'sold-out' ? 'Find visitor information and answers to common attendee questions.' : 'The organizing team will share booking details here when they’re available.')
+  return <section className="home-width home-section home-registration" id="registration" aria-labelledby="registration-heading">
+    <div className="home-pass" data-reveal><div className="home-pass-copy"><p className="home-kicker">{after ? 'After the event' : 'Event registration'}</p>
+      <h2 id="registration-heading">{access.label}</h2><p>{detail}</p>
+      {event.eligibility && <p>{event.eligibility}</p>}
+      {event.recap.filter(l=>safeUrl(l.url)).map(l=><p key={l.url}><a className="home-text-link" href={l.url}>{l.label} <Arrow/></a></p>)}
+      <a className="home-button" href={access.href || (after ? '/agenda' : '/faq')}>{access.href ? 'Official registration' : after ? 'View programme' : 'Attendee FAQs'} <Arrow/></a></div>
+      <div className="home-pass-stub" aria-hidden="true"><img alt="" src="/brand/kasavu.svg" width="112" height="112" loading="lazy"/></div>
     </div>
-    <div className="home-track-list">{tracks.map((track,index)=>
-      <details key={track.id} className="home-track">
-        <summary><span className="home-track-number">{String(index+1).padStart(2,'0')}</span><span>{track.title}</span><span className="home-toggle" aria-hidden="true"/></summary>
-        <div className="home-track-description"><p>{track.description}</p>{sessions.some(s=>s.trackId===track.id)&&<a className="home-rule-link" href={'/agenda?track='+encodeURIComponent(track.id)}>Browse sessions <Arrow/></a>}</div>
-      </details>
-    )}</div>
   </section>
 }
 
-function Programme() {
-  return <section className="home-programme" aria-labelledby="programme-heading"><div className="home-width home-section">
-    <div data-reveal><Topic text="The programme"/><h2 id="programme-heading">People &amp; sessions.</h2></div>
-    <div className="home-programme-links">
-      <a href="/speakers" data-reveal><span>{speakers.length ? 'Meet the speakers' : 'Speakers to be announced'}</span><Arrow diagonal/></a>
-      <a href="/agenda" data-reveal><span>{sessions.length ? 'Browse the agenda' : 'Agenda coming soon'}</span><Arrow diagonal/></a>
-    </div>
+function AttendeeFaq() {
+  return <section className="home-faq-band" id="faq" aria-labelledby="faq-heading"><div className="home-width home-section home-faq">
+    <div data-reveal><p className="home-kicker">Attendee guide</p><h2 id="faq-heading">Frequently asked questions<span>.</span></h2>
+      <a className="home-text-link" href="/faq">Search all FAQs <Arrow/></a></div>
+    <div className="home-faq-list">{faqs.slice(0, 4).map(faq =>
+      <details key={faq.question}><summary>{faq.question}<span className="home-toggle" aria-hidden="true"/></summary>
+        <div className="home-answer"><p>{faq.answer}</p></div></details>)}</div>
   </div></section>
 }
-function VisitorGuide() {
-  return <section className="home-width home-section home-visit" aria-labelledby="visit-heading">
-    <div data-reveal><Topic text="Attendee guide"/><h2 id="visit-heading">Plan your visit.</h2></div>
-    <div className="home-visit-list">
-      <article><h3>Venue &amp; travel</h3><p>{event.venue ? event.venue.name+' · '+event.venue.address : 'Venue to be announced. Directions and arrival information will be available once the venue is confirmed.'}</p><a className="home-rule-link" href="/venue">Visitor information <Arrow/></a></article>
-      <article><h3>Organizers &amp; partners</h3><p>{partners.length ? 'Meet the partners supporting this edition.' : 'Partners for this edition will be announced here.'}</p><a className="home-rule-link" href="/partners">Community &amp; partners <Arrow/></a></article>
-    </div>
-  </section>
-}
-function AttendeeFaq() {
-  return <section className="home-width home-section home-faq" aria-labelledby="faq-heading">
-    <div><Topic text="Attendee questions"/><h2 id="faq-heading">Before you go.</h2><a className="home-rule-link" href="/faq">All FAQs <Arrow/></a></div>
-    <div>{faqs.slice(0,3).map(faq=><details key={faq.question}><summary>{faq.question}<span className="home-toggle" aria-hidden="true"/></summary><p>{faq.answer}</p></details>)}</div>
-  </section>
-}
-function Registration() {
-  const access=registration()
-  const after=event.phase==='post-event'
-  return <section className="home-width home-registration" id="registration" aria-labelledby="registration-heading">
-    <div className="home-registration-copy" data-reveal><Topic text={after?'After the event':'Registration'}/><h2 id="registration-heading">{access.label}</h2>
-      <p>{event.registrationNotes || (after ? 'Find published resources and programme information for this edition.' : 'Official pass details and attendee guidance will be published by the organizing team.')}</p>
-      {event.eligibility && <p>{event.eligibility}</p>}
-      {event.recap.filter(l=>safeUrl(l.url)).map(l=><p key={l.url}><a className="home-rule-link" href={l.url}>{l.label} <Arrow/></a></p>)}
-    </div>
-    <a className="home-button" href={access.href || (after ? '/agenda' : '/faq')}>{access.href ? 'Official registration' : after ? 'View programme' : 'Attendee FAQs'} <Arrow/></a>
-  </section>
-}
-export default function Home() {
-  return <div className="home-page"><EventHero/><Organizer/>
-    {event.announcements.length>0 && <section className="home-width home-section"><h2>Event updates</h2><ul>{event.announcements.map(a=><li key={a}>{a}</li>)}</ul></section>}
-    <FirstEdition/><Experience/><Tracks/><Programme/><VisitorGuide/><AttendeeFaq/><Registration/>
+
+export default function Home({partnerGroups = [], partnerPreview = false}: {partnerGroups?: PartnerGroup[]; partnerPreview?: boolean}) {
+  return <div className="home-page"><EventHero/>
+    {event.announcements.length > 0 && <section className="home-width home-updates"><h2>Event updates</h2><ul>{event.announcements.map(a=><li key={a}>{a}</li>)}</ul></section>}
+    <Introduction/><Experience/><SpeakerLineup/><Tracks/><Agenda/><Organizer/><Registration/>
+    <PartnerShowcase groups={partnerGroups} preview={partnerPreview}/><AttendeeFaq/>
   </div>
 }

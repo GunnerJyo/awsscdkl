@@ -19,6 +19,9 @@ const page = await context.newPage()
 const errors = []
 const audit = { views: 0, accessibility: [], localLinks: [], screenshots: [] }
 page.on('pageerror', error => errors.push(String(error)))
+page.on('console', message => {
+  if (message.type() === 'error' && /hydrat|did not match|didn't match/i.test(message.text())) errors.push(message.text())
+})
 if (screenshots) await mkdir(captureDir, { recursive: true })
 
 async function go(url) {
@@ -172,15 +175,25 @@ async function checkMenuMotion() {
 }
 // Inject test-only records in a loopback Vite server. Public source and output stay untouched.
 async function checkPublishedContent() {
+  const fixtureViews = process.env.FIXTURE_VIEWS
+  if (fixtureViews) await mkdir(fixtureViews,{recursive:true})
+  const fixturePortrait = '**/qa-portrait-*.svg'
+  await page.route(fixturePortrait,route => {
+    const first = route.request().url().endsWith('1.svg')
+    return route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 384"><rect width="480" height="384" fill="'+(first?'#F1EEFF':'#F6F8FB')+'"/><text x="240" y="202" text-anchor="middle" font-family="monospace" font-size="37" fill="#505B70">'+(first?'Portrait A':'Portrait B')+'</text></svg>'})
+  })
   const server = await createServer({ logLevel: 'error', server: {host:'127.0.0.1',port:0}, plugins:[{
     name:'private-qa-records', enforce:'pre', transform(code,id) {
       if (!id.replaceAll('\\','/').endsWith('/src/content.ts')) return
       const setup = `
-        Object.assign(event,{phase:'registration-open', registrationStatus:'open', registrationUrl:'https://registration.example.test/book'})
-        speakers.splice(0,speakers.length,{id:'qa-person',name:'QA speaker',bio:'Private test record'})
+        Object.assign(event,{phase:'registration-open', registrationStatus:'open', registrationUrl:'https://registration.example.test/book',socialLinks:[{label:'QA event channel',url:'https://social.example.test/event'}]})
+        speakers.splice(0,speakers.length,
+          {id:'qa-person',name:'QA speaker',role:'Sample engineering lead',organization:'Test organization',portrait:'/qa-portrait-1.svg',bio:'Private test record',links:[{label:'QA speaker channel',url:'https://social.example.test/speaker'}]},
+          {id:'qa-facilitator',name:'QA facilitator',role:'Sample developer advocate',organization:'Test community',portrait:'/qa-portrait-2.svg',bio:'Private test record'}
+        )
         sessions.splice(0,sessions.length,
           {id:'qa-one',title:'QA infrastructure',description:'Private first session',start:'2027-01-01T19:00:00Z',end:'2027-01-01T19:30:00Z',type:'Talk',room:'Test room A',trackId:'cloud',speakerIds:['qa-person']},
-          {id:'qa-two',title:'QA models',description:'Private second session',start:'2027-01-03T02:00:00Z',end:'2027-01-03T03:00:00Z',type:'Workshop',room:'Test room B',trackId:'ai',speakerIds:[]}
+          {id:'qa-two',title:'QA models',description:'Private second session',start:'2027-01-03T02:00:00Z',end:'2027-01-03T03:00:00Z',type:'Workshop',room:'Test room B',trackId:'ai',speakerIds:['qa-facilitator']}
         )
       `
       return code.replace('const enrolment = registration()',setup + '\nconst enrolment = registration()')
@@ -231,7 +244,73 @@ async function checkPublishedContent() {
     await page.getByRole('link',{name:'QA speaker',exact:true}).first().click()
     await page.getByRole('heading',{name:'QA speaker',exact:true}).waitFor()
     assert.ok((await page.locator('main').innerText()).includes('QA infrastructure'))
-  } finally { await server.close() }
+    assert.equal(await page.getByRole('link',{name:'QA speaker channel'}).getAttribute('href'),'https://social.example.test/speaker')
+    await go(host+'/about')
+    assert.equal(await page.getByRole('link',{name:'QA event channel'}).getAttribute('href'),'https://social.example.test/event')
+    for (const url of ['/','/agenda']) {
+      await page.setViewportSize({width:1440,height:900})
+      await go(host+url)
+      const explorer = page.locator('.agenda-explorer')
+      const all = explorer.getByRole('radio',{name:'All tracks'})
+      await all.focus()
+      await page.keyboard.press('ArrowRight')
+      assert.equal(await explorer.getByRole('radio',{name:'Cloud & Infrastructure'}).isChecked(),true)
+      assert.deepEqual(await explorer.locator('article h4').allTextContents(),['QA infrastructure'])
+      await page.keyboard.press('ArrowRight')
+      assert.deepEqual(await explorer.locator('article h4').allTextContents(),['QA models'])
+      await page.setViewportSize({width:390,height:844})
+      assert.equal(await explorer.getByRole('combobox',{name:'Tracks'}).inputValue(),'ai')
+      await explorer.getByRole('button',{name:'Clear filters'}).click()
+      assert.equal(await explorer.locator('article').count(),2)
+      await go(host+url+'?track=cloud')
+      assert.deepEqual(await explorer.locator('article h4').allTextContents(),['QA infrastructure'])
+      await explorer.getByRole('searchbox').fill('unmatched')
+      assert.ok(await explorer.getByText('No sessions match your selection.',{exact:false}).isVisible())
+      if (axePath) {
+        await checkAccessibility('Private empty filter results '+url,390)
+        await explorer.getByRole('button',{name:'Clear filters'}).click()
+        await checkAccessibility('Private populated '+url,390)
+      }
+    }
+    await page.setViewportSize({width:1440,height:1120})
+    await page.emulateMedia({reducedMotion:'no-preference'})
+    const recordView = async name => {
+      if (!fixtureViews) return
+      await page.addStyleTag({content:'body::after{content:"Private UI fixture · synthetic event data";position:fixed;bottom:12px;right:16px;background:#15192d;color:white;padding:8px 12px;font:14px monospace;z-index:40}'})
+      await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}))
+      await page.screenshot({path:resolve(fixtureViews,'fixture-'+name+'.jpg'),quality:84})
+    }
+    const readFrames = (element,property) => element.evaluate(async (el,key) => {
+      const samples = new Set()
+      const start = performance.now()
+      do {
+        samples.add(getComputedStyle(el)[key])
+        await new Promise(requestAnimationFrame)
+      } while (performance.now()-start < 350)
+      return samples.size
+    },property)
+    await go(host+'/speakers')
+    const card = page.locator('.speaker-print').first()
+    await card.scrollIntoViewIfNeeded()
+    await card.hover({position:{x:10,y:12}})
+    const portraitFrames = await readFrames(card.locator('img'),'transform')
+    assert.ok(portraitFrames > 1,'Speaker portrait changes scale across frames on hover')
+    if (axePath) await checkAccessibility('Private speaker directory',1440)
+    await recordView('speakers')
+    await go(host+'/agenda')
+    const nextTrack = page.getByRole('radio',{name:'Cloud & Infrastructure'})
+    await nextTrack.scrollIntoViewIfNeeded()
+    await nextTrack.check()
+    const tabFrames = await readFrames(nextTrack.locator('+ span'),'backgroundColor')
+    assert.ok(tabFrames > 1,'Selected track changes fill across frames')
+    await nextTrack.focus()
+    await recordView('agenda')
+    audit.fixtureMotion = {portraitFrames,tabFrames}
+  } finally {
+    await page.unroute(fixturePortrait)
+    await page.emulateMedia({reducedMotion:'reduce'})
+    await server.close()
+  }
 }
 try {
   if (process.env.PROGRAMME_ONLY !== '1') {
@@ -244,7 +323,7 @@ try {
   if (process.env.QA_RESULT) await writeFile(process.env.QA_RESULT, JSON.stringify(audit,null,2))
   assert.deepEqual(audit.accessibility.filter(row => row.violations.length),[])
   if (process.env.PROGRAMME_ONLY === '1') {
-    console.log('Passed private agenda, registration and speaker-profile fixtures, including track label fit at five phone widths.')
+    console.log('Passed private agenda, homepage, registration and speaker-profile fixtures, keyboard track switching, hydration and track label fit at five phone widths.')
   } else {
     console.log('Passed',audit.views,'route/width checks,',audit.localLinks.length,'local destinations, keyboard controls, FAQ and private programme fixtures.')
   }
