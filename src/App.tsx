@@ -2,6 +2,7 @@ import Home from './Home'
 import { SupportingPage } from './Pages'
 import { event, registration, safeUrl, speakers, sessions } from './content'
 import type { PartnerGroup } from './partner-model'
+import { StripedPattern } from './components/magicui/striped-pattern'
 import './global.css'
 
 type MenuLink = readonly [label: string, href: string]
@@ -13,10 +14,13 @@ const attendee: MenuLink[] = [
   ['Partners', '/partners'], ['Venue', '/venue'], ['Event FAQ', '/faq'],
   ['Code of Conduct', '/code-of-conduct'], ['Privacy', '/privacy'],
 ]
-const shortcuts = [programme[0], programme[1], programme[3], programme[4], attendee[0]]
+const shortcuts = [programme[0], programme[3], programme[4], attendee[0]]
 
-function EventLogo() {
-  return <img className="event-lockup" src="/brand/primary.png" width="635" height="180" alt={event.title} />
+function EventLogo({footer = false}: {footer?: boolean}) {
+  return <img className="event-lockup" src="/brand/primary.png"
+    srcSet="/brand/primary-210.webp 210w, /brand/primary-635.webp 635w"
+    sizes={footer ? 'clamp(162px, 15vw, 207px)' : '(max-width: 600px) clamp(122px, 37vw, 160px), clamp(160px, 13vw, 193px)'}
+    width="635" height="180" alt={event.title} />
 }
 
 function current(path: string, href: string) {
@@ -42,12 +46,19 @@ function SiteHeader({path}: {path: string}) {
     <div className="site-header-bar">
       <div className="site-header-inner">
         <a className="site-identity" href="/" aria-label={event.title + ' home'}><EventLogo/></a>
+        <a className="faq-shortcut" href="/faq#search-questions">
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="5.5"/><path d="m12.25 12.25 5 5"/></svg>
+          Search attendee FAQs <span className="faq-shortcut-arrow" aria-hidden="true">→</span>
+        </a>
         <nav className="quick-nav" aria-label="Event shortcuts">
           {shortcuts.map(([label, href]) => <a key={href} href={href} aria-current={current(path, href)}>{label}</a>)}
           {access.href && <a className="registration-link" href={access.href}>Register <span aria-hidden="true">↗</span></a>}
         </nav>
         <div className="header-affiliation">
-          <img className="aws-mark" src="/brand/aws-logo-rgb.png" width="1254" height="750" alt="Amazon Web Services" />
+          <img className="aws-mark" src="/brand/aws-logo-rgb.png"
+            srcSet="/brand/aws-logo-rgb-48.webp 48w, /brand/aws-logo-rgb-96.webp 96w, /brand/aws-logo-rgb-192.webp 192w"
+            sizes="(max-width: 600px) 32px, (max-width: 870px) 38px, 43px"
+            width="1254" height="750" alt="Amazon Web Services" />
         </div>
         <button className="menu-trigger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="site-menu">
           <span data-label>Menu</span><span className="menu-glyph" aria-hidden="true"></span>
@@ -55,30 +66,43 @@ function SiteHeader({path}: {path: string}) {
       </div>
       <nav aria-label="Main" id="site-menu" className="site-nav" data-state="closed">
         <div className="menu-interior">
-          <MenuGroup title="The conference" links={programme} path={path}/>
+          <MenuGroup title="The conference" links={[['Home','/'], ...programme]} path={path}/>
           <MenuGroup title="Attendee guide" links={visit} path={path}/>
         </div>
-        <div className="menu-accent"><img src="/brand/wide-signature.svg" width="2400" height="48" alt=""/></div>
+        <div className="menu-accent" aria-hidden="true"><StripedPattern spacing={7}/></div>
       </nav>
     </div>
   </header>
+}
+
+function SiteRail({path}: {path:string}) {
+  return <aside className="site-rail">
+    <nav aria-label="Event guide" className="rail-inner">
+      <p className="rail-heading">Event guide</p>
+      <a className="rail-home" href="/" aria-current={current(path,'/')}>
+        <svg aria-hidden="true" width="17" height="17" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.5" fill="none"><path d="M2 8.5 10 2l8 6.5v9H12v-6H8v6H2Z"/></svg>
+        Home
+      </a>
+      <MenuGroup title="Conference" links={programme} path={path}/>
+      <MenuGroup title="Attending" links={attendee} path={path}/>
+    </nav>
+  </aside>
 }
 
 function SiteFooter() {
   const contact = safeUrl(event.contactUrl)
   return <footer className="site-footer" data-reveal="">
     <div className="site-footer-inner">
-      <EventLogo/>
+      <EventLogo footer/>
       <nav className="footer-links" aria-label="Event information">
         <a href="/about">About</a><a href="/code-of-conduct">Code of Conduct</a><a href="/privacy">Privacy</a>
         {contact && <a href={contact}>Contact</a>}
       </nav>
-      {event.copyrightNotice && <p className="footer-credit">{event.copyrightNotice}</p>}
+      <div className="footer-colophon"><p>Event website prototype</p>
+        {event.copyrightNotice && <p className="footer-credit">{event.copyrightNotice}</p>}
+      </div>
     </div>
-    <picture className="footer-strip-wrap">
-      <source media="(min-width:701px)" srcSet="/brand/wide-signature.svg" width="2400" height="48"/>
-      <img className="site-footer-strip" src="/brand/signature.svg" alt="" width="1280" height="90" loading="lazy"/>
-    </picture>
+    <div className="footer-strip-wrap" aria-hidden="true"/>
   </footer>
 }
 
@@ -90,10 +114,11 @@ export function App({path, partnerGroups, partnerPreview = false}: AppProps) {
     <div id="site-start" tabIndex={-1}></div>
     <a className="skip-link" href="#main-content">Skip to content</a>
     <SiteHeader path={path}/>
+    <div className="site-workspace"><SiteRail path={path}/>
     <main id="main-content" tabIndex={-1} data-interactive={interactive || undefined}>
       {path === '/' ? <Home partnerGroups={partnerGroups} partnerPreview={partnerPreview}/> :
         <SupportingPage path={path} partnerGroups={partnerGroups} partnerPreview={partnerPreview}/>}
-    </main>
+    </main></div>
     <SiteFooter/>
   </>
 }

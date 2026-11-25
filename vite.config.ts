@@ -1,10 +1,13 @@
 import { defineConfig } from 'vite'
+import tailwindcss from '@tailwindcss/vite'
 import { readFile } from 'node:fs/promises'
 import { basename, extname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 export default defineConfig({
   esbuild:{jsx:'automatic'},
-  plugins:[{
+  resolve:{alias:{'@':fileURLToPath(new URL('./src', import.meta.url))}},
+  plugins:[tailwindcss(),{
     name:'event-dev-pages',
     configureServer(server) {
       server.middlewares.use(async (req,res,next)=>{

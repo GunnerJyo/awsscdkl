@@ -3,4 +3,6 @@ dist/
 dist-prototype/
 .vite/
 .env*.local
+organizer/partners.local.ts
+organizer/marks/*-preview.webp
 

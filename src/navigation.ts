@@ -11,7 +11,8 @@ export function enableNavigation() {
   const controller = new AbortController()
   const { signal } = controller
   const links = [...nav.querySelectorAll<HTMLAnchorElement>('a[href]')]
-  const outside = document.querySelectorAll<HTMLElement>('main, .site-footer, .skip-link, .quick-nav, .site-identity')
+  const guideLinks = [...links,...document.querySelectorAll<HTMLAnchorElement>('.rail-inner a[href]')]
+  const outside = document.querySelectorAll<HTMLElement>('main, .site-rail, .site-footer, .skip-link, .quick-nav, .faq-shortcut, .site-identity')
   const root = document.documentElement
   let generation = 0
   let state: MenuState = 'closed'
@@ -63,8 +64,13 @@ export function enableNavigation() {
     afterWipe(() => {reset();onClosed?.()})
   }
   const updateLocation = () => {
-    for (const link of links) {
+    const activeSection = guideLinks.some(link => link.hash && link.pathname === location.pathname && link.hash === location.hash)
+    for (const link of guideLinks) {
       const url = new URL(link.href)
+      if (url.pathname === '/' && !url.hash && location.pathname === '/') {
+        if (activeSection) link.removeAttribute('aria-current')
+        else link.setAttribute('aria-current','page')
+      }
       if (!url.hash) continue
       if (url.pathname === location.pathname && url.hash === location.hash) link.setAttribute('aria-current','location')
       else link.removeAttribute('aria-current')

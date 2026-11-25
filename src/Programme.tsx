@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Button } from './components/ui/button'
 import {
   clockLabel, dayLabel, durationMinutes, emptyFilters, filterSessions, publicImage, safeUrl,
   sessionDayKey, sessions, speakers, tracks, type Filters, type Session, type Speaker
@@ -97,7 +98,7 @@ export function AgendaExplorer() {
       {formats.length > 0 && <SelectFilter label="Formats" options={formats} value={filters.type} change={v => change('type',v)}/>}
     </div>
     <div className="directory-status"><p role="status">{shown.length} {shown.length === 1 ? 'session' : 'sessions'} · India Standard Time</p>
-      {Object.values(filters).some(Boolean) && <button type="button" onClick={() => setFilters(emptyFilters)}>Clear filters</button>}</div>
+      {Object.values(filters).some(Boolean) && <Button variant="link" type="button" onClick={() => setFilters(emptyFilters)}>Clear filters</Button>}</div>
     {shown.length ? <Timeline items={shown}/> : <p className="directory-zero">No sessions match your selection. Try another track, speaker or format.</p>}
   </div>
 }

@@ -134,6 +134,27 @@ async function checkInteractions() {
   await search.fill('unmatchable-qa-text')
   await page.getByRole('button',{name:'Clear search'}).click()
   assert.ok(await page.locator('details').count() > 1)
+  // A visitor can type in the prerendered search field while React is downloading.
+  await page.setViewportSize({width:1440,height:900})
+  await go(base+'/')
+  const hydrationModule = /\/(?:assets\/hydrate-[^/?]+\.js|src\/hydrate\.tsx)(?:\?.*)?$/
+  let releaseModule
+  const gate = new Promise(resolve => {releaseModule = resolve})
+  await page.route(hydrationModule,async route => {await gate;await route.continue()})
+  try {
+    await page.locator('.faq-shortcut').click({noWaitAfter:true})
+    const field = page.locator('#search-questions')
+    await field.waitFor()
+    await page.waitForFunction(()=>document.activeElement===document.getElementById('search-questions'))
+    await page.keyboard.type('unmatchable-qa-text')
+    assert.equal(await field.inputValue(),'unmatchable-qa-text')
+    releaseModule()
+    await page.getByText('No questions match your search.').waitFor()
+  } finally {
+    releaseModule()
+    await page.unroute(hydrationModule)
+  }
+  await page.setViewportSize({width:390,height:844})
   await go(base + '/agenda')
   const proposed = page.locator('main details').first()
   if (await proposed.count()) {

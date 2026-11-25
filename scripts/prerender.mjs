@@ -1,6 +1,6 @@
 import { copyFile, readFile, writeFile, mkdir, readdir } from 'node:fs/promises'
 import { basename, dirname, join } from 'node:path'
-import { createServer } from 'vite'
+import { createSsrModules } from './ssr-modules.mjs'
 import { brotliCompressSync, gzipSync, constants } from 'node:zlib'
 
 async function precompress(directory) {
@@ -20,7 +20,7 @@ async function precompress(directory) {
 
 const preview = process.argv.includes('--prototype')
 const output = preview ? 'dist-prototype' : 'dist'
-const server = await createServer({ configFile:false, appType:'custom', optimizeDeps:{noDiscovery:true}, server:{middlewareMode:true,hmr:false}, esbuild:{jsx:'automatic'} })
+const server = await createSsrModules()
 try {
   const { renderRoute, routes, origin, escapeHtml, partnerAssets } = await server.ssrLoadModule('/src/server.tsx')
   let template = await readFile(join(output,'index.html'),'utf8')

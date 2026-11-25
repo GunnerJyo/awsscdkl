@@ -5,6 +5,7 @@ export type PartnerEntry = {
   id: string
   name: string
   logo?: string
+  logoThumbnail?: string
   logoSmall?: string
   logoWidth?: number
   logoHeight?: number
@@ -40,7 +41,7 @@ export function partnerGroups(records: PartnerRecord[], preview = false, edition
     if (!published && !(preview && record.approvedForPrototype && record.edition === edition)) continue
     let heading = record.reviewGroup
     if (published) heading = record.status === 'historical' ? 'Historical collaborations' : record.category!.trim()
-    for (const filename of [record.logo, record.logoSmall]) {
+    for (const filename of [record.logo, record.logoSmall, record.logoThumbnail]) {
       if (filename && !/^[a-z0-9][a-z0-9-]*\.(?:webp|png|svg)$/.test(filename)) {
         throw new Error('Invalid logo filename for ' + record.id)
       }
@@ -49,6 +50,7 @@ export function partnerGroups(records: PartnerRecord[], preview = false, edition
       id:record.id, name:record.name, logoProfile:record.logoProfile, status:record.status,
       edition:record.edition, approvedForDisplay:record.approvedForDisplay,
       logo:record.logo ? '/community-logos/'+record.logo : undefined,
+      logoThumbnail:record.logoThumbnail ? '/community-logos/'+record.logoThumbnail : undefined,
       logoSmall:record.logoSmall ? '/community-logos/'+record.logoSmall : undefined,
       logoWidth:record.logoWidth, logoHeight:record.logoHeight,
       website:safeUrl(record.website) ?? undefined,

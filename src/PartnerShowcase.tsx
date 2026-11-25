@@ -6,9 +6,12 @@ type Props = { groups: PartnerGroup[]; preview?: boolean; standalone?: boolean }
 
 function PartnerIdentity({ entry }: { entry: PartnerEntry }) {
   const logo = publicImage(entry.logo)
+  const thumbnail = publicImage(entry.logoThumbnail)
   const small = publicImage(entry.logoSmall)
   const website = safeUrl(entry.website)
-  const sources = small && logo && entry.logoWidth ? small + ' 512w, ' + logo + ' ' + entry.logoWidth + 'w' : undefined
+  const sources = (small || thumbnail) && logo && entry.logoWidth
+    ? [thumbnail && thumbnail + ' 256w', small && small + ' 512w', logo + ' ' + entry.logoWidth + 'w'].filter(Boolean).join(', ')
+    : undefined
   const mark = logo ? <img src={logo} srcSet={sources} sizes={sources ? '(max-width: 500px) 124px, 160px' : undefined}
     width={entry.logoWidth} height={entry.logoHeight} alt="" loading="lazy" decoding="async" /> : null
   const identity = <>

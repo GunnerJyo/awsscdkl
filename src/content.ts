@@ -29,6 +29,7 @@ export const organizingGroup = {
   role: 'Event organizer',
   website: 'https://awssbg.iedclbscek.in/',
   logo: '/brand/organizer-lbscek.png',
+  logoSrcSet: '/brand/organizer-lbscek-96.webp 96w, /brand/organizer-lbscek-192.webp 192w, /brand/organizer-lbscek-288.webp 288w',
 }
 
 export const event: EventInfo = {

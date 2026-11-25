@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { existsSync } from 'node:fs'
 import { readdir } from 'node:fs/promises'
 import { chromium } from 'playwright'
-import { createServer } from 'vite'
+import { createSsrModules } from '../scripts/ssr-modules.mjs'
 
 // Use the real SSR entry points with synthetic data. These responses exist
 // only inside this browser context and never alter the registry or dist.
@@ -29,7 +29,7 @@ const registry = [
   record('vague-history','Unapproved History Fixture',{status:'historical',historicalYear:2026}),
 ]
 const unpublished = registry.slice(4).map(r=>r.name)
-const modules = await createServer({configFile:false,appType:'custom',esbuild:{jsx:'automatic'},server:{middlewareMode:true},logLevel:'error'})
+const modules = await createSsrModules()
 let browser
 try {
   const {renderRoute} = await modules.ssrLoadModule('/src/server.tsx')

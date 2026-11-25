@@ -1,0 +1,25 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(".");
+
+/* Catalogue components share the conference palette and existing CSS reset. */
+@theme inline {
+  --color-background: var(--white);
+  --color-foreground: var(--ink);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--ink);
+  --color-popover: var(--white);
+  --color-popover-foreground: var(--ink);
+  --color-primary: var(--black);
+  --color-primary-foreground: var(--white);
+  --color-secondary: var(--surface);
+  --color-secondary-foreground: var(--ink);
+  --color-muted: var(--surface);
+  --color-muted-foreground: var(--muted);
+  --color-accent: var(--lavender);
+  --color-accent-foreground: var(--ink);
+  --color-destructive: #a31c27;
+  --color-border: var(--grid);
+  --color-input: var(--line);
+  --color-ring: var(--focus);
+}

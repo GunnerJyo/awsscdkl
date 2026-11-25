@@ -1,3 +1,9 @@
+@font-face {
+  font-family:"Noto Sans Malayalam";
+  src:url("/brand/fonts/NotoSansMalayalam-Keralam.woff2") format("woff2");
+  font-style:normal;font-weight:500;font-display:swap;
+  unicode-range:U+0D02,U+0D15,U+0D30,U+0D33,U+0D47;
+}
 /* Extended glyphs load on demand, including in published speaker and venue names. */
 @font-face {
   font-family: "IBM Plex Sans";

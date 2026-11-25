@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import { after, test } from 'node:test'
-import { createServer } from 'vite'
+import { createSsrModules } from '../scripts/ssr-modules.mjs'
 
-const vite = await createServer({ configFile: false, appType: 'custom', optimizeDeps: { noDiscovery: true }, server: { middlewareMode: true, hmr: false } })
+const vite = await createSsrModules()
 const { event, speakers, tracks, sessions, safeUrl, publicImage, registration, filterSessions, emptyFilters, sessionDayKey, clockLabel, durationMinutes } = await vite.ssrLoadModule('/src/content.ts')
 const { partnerRegistry:partners } = await vite.ssrLoadModule('/organizer/partners.ts')
 const { partnerGroups } = await vite.ssrLoadModule('/src/partner-model.ts')
@@ -100,11 +100,13 @@ test('historical credit requires edition-specific publication approval, prior ye
 })
 
 test('logo destinations use local filenames and web destinations accept validated HTTPS', () => {
-  const [group]=partnerGroups([{...base,logo:'group.webp',logoSmall:'group-512.webp',website:'javascript:test'}],true)
+  const [group]=partnerGroups([{...base,logo:'group.webp',logoSmall:'group-512.webp',logoThumbnail:'group-256.webp',website:'javascript:test'}],true)
   assert.equal(group.entries[0].logo,'/community-logos/group.webp')
   assert.equal(group.entries[0].logoSmall,'/community-logos/group-512.webp')
+  assert.equal(group.entries[0].logoThumbnail,'/community-logos/group-256.webp')
   assert.equal(group.entries[0].website,undefined)
   assert.throws(()=>partnerGroups([{...base,logo:'../private.png'}],true),/Invalid logo/)
+  assert.throws(()=>partnerGroups([{...base,logoThumbnail:'../private.webp'}],true),/Invalid logo/)
   assert.equal(partnerGroups([base],true)[0].entries[0].logo,undefined)
 })
 

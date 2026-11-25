@@ -1,4 +1,5 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { Button } from './components/ui/button'
 import {
   event, faqs, organizingGroup, tracks, speakers, sessions, registration, safeUrl,
   publicImage, programmeSource, type Speaker
@@ -29,7 +30,7 @@ function Intro({ title, lead, art }: { title:string; lead:string; art?:Art }) {
   </header>
 }
 function TextLink({ href, children, external = false }: { href:string; children:ReactNode; external?:boolean }) {
-  return <a className="folio-link" href={href}>{children} <span aria-hidden="true">{external ? '↗' : '→'}</span></a>
+  return <a className="folio-link" href={href}><span>{children}<span aria-hidden="true" className="folio-link-arrow">{'\u00A0'}{external ? '↗' : '→'}</span></span></a>
 }
 function StatusPanel({ title, children, href, label }: { title:string; children:ReactNode; href:string; label:string }) {
   return <section className="folio-status"><h2>{title}</h2><div><p>{children}</p><TextLink href={href}>{label}</TextLink></div></section>
@@ -52,7 +53,8 @@ function About() {
     <BodyRow title="Built by students"><p className="folio-deck">{event.title} brings students from across Keralam together to share what they are building with the cloud.</p><p>Bring the questions behind a class project, a tool you are exploring, or an application you want to build.</p><p>AWS Student Community Days are one-day conferences organized by Student Builder Group leaders and their core teams. AWS describes its role in the wider programme as one of several sponsors.</p><TextLink href={programmeSource} external>Read about AWS Student Community Days</TextLink><p className="folio-fineprint">Amazon Web Services, AWS, and the AWS logo are trademarks of Amazon.com, Inc. or its affiliates.</p></BodyRow>
     <BodyRow title="Learning together"><p>Explore how cloud infrastructure, AI and developer tools work in practice. The topic guide is a starting point for discovery. Confirmed talks and their prerequisites will appear in the agenda.</p><TextLink href="/#tracks">Explore topic directions</TextLink></BodyRow>
     <BodyRow title="Organizing community" id="organizing-community"><p>Keralam’s gathering is part of the AWS Student Builder Groups community. These student-led campus groups host events and help people learn cloud skills through practical projects.</p>
-      {event.organizers.map(o => <div key={o.name} className="folio-organizer">{o.name === organizingGroup.name && <img src={organizingGroup.logo} width="80" height="80" loading="lazy" alt=""/>}
+      {event.organizers.map(o => <div key={o.name} className="folio-organizer">{o.name === organizingGroup.name && <img
+        src={organizingGroup.logo} srcSet={organizingGroup.logoSrcSet} sizes="clamp(52px, 6vw, 74px)" width="80" height="80" loading="lazy" alt=""/>}
         <div><small>{o.role}</small><h3>{o.name}</h3>{o.name === organizingGroup.name && <p>{organizingGroup.institution}</p>}
           {safeUrl(o.website) && <TextLink href={safeUrl(o.website)!} external>Community website</TextLink>}</div></div>)}
       <TextLink href={studentGroups} external>Find an AWS Student Builder Group</TextLink><ContactLink/></BodyRow>
@@ -71,7 +73,7 @@ function Speakers() {
     {speakers.length ? <section className="folio-directory speaker-directory"><div className="speaker-finder"><h2>Speaker directory</h2>
       <label className="directory-field">Search speakers<input type="search" value={query} onChange={e => setQuery(e.target.value)}/></label>
       <div className="directory-status"><p role="status">{shown.length} {shown.length === 1 ? 'speaker' : 'speakers'}</p>
-        {query && <button type="button" onClick={() => setQuery('')}>Clear search</button>}</div></div>
+        {query && <Button variant="link" type="button" onClick={() => setQuery('')}>Clear search</Button>}</div></div>
       {shown.length ? <SpeakerCards people={shown}/> : <p className="directory-zero">No speakers match your search.</p>}</section> :
       <StatusPanel title="Speakers to be announced" href="/agenda" label="Explore the programme">The first speaker announcements will appear here with each speaker’s background, topic and confirmed sessions.</StatusPanel>}</>
 }
@@ -111,12 +113,18 @@ function VenuePage() {
 }
 function FAQ() {
   const [query,setQuery] = useState('')
+  const searchField = useRef<HTMLInputElement>(null)
+  // The header shortcut can focus this prerendered field before React loads.
+  useEffect(() => {
+    const typed = searchField.current?.value
+    if (typed) setQuery(typed)
+  }, [])
   const shown = faqs.filter(f => (f.question+' '+f.answer).toLowerCase().includes(query.toLowerCase().trim()))
   return <><Intro title="Frequently asked questions" lead="Practical answers about the programme, registration and attending the event."/>
     <section className="folio-faq"><div className="folio-faq-tools"><label className="directory-field">Search questions
-      <input type="search" value={query} onChange={e => setQuery(e.target.value)}/></label>
+      <input id="search-questions" ref={searchField} type="search" value={query} onChange={e => setQuery(e.target.value)}/></label>
       <div className="directory-status"><p role="status">{shown.length} {shown.length === 1 ? 'question' : 'questions'}</p>
-        {query && <button type="button" onClick={() => setQuery('')}>Clear search</button>}</div></div>
+        {query && <Button variant="link" type="button" onClick={() => setQuery('')}>Clear search</Button>}</div></div>
       <div className="folio-accordion">{shown.map(f => <details key={f.question}><summary>{f.question}</summary><p>{f.answer}</p></details>)}
         {!shown.length && <p className="directory-zero">No questions match your search.</p>}</div></section>
     {safeUrl(event.contactUrl) && <BodyRow title="Contact the team"><ContactLink/></BodyRow>}</>
