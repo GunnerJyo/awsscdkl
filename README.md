@@ -1,4 +1,6 @@
-# Event Website — UI/UX Prototype
+# AWS Student Community Day Keralam 2027
+
+<a href="public/brand/conference-logo.png"><img src="public/brand/conference-logo-256.webp" width="128" height="128" alt="Download the full-resolution conference logo"></a>
 
 A modern, responsive conference website prototype built with **React, TypeScript, and Vite**.
 

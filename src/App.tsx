@@ -3,6 +3,7 @@ import { SupportingPage } from './Pages'
 import { event, registration, safeUrl, speakers, sessions } from './content'
 import type { PartnerGroup } from './partner-model'
 import { StripedPattern } from './components/magicui/striped-pattern'
+import { ConferenceLogo } from './ConferenceLogo'
 import './global.css'
 
 type MenuLink = readonly [label: string, href: string]
@@ -16,11 +17,11 @@ const attendee: MenuLink[] = [
 ]
 const shortcuts = [programme[0], programme[3], programme[4], attendee[0]]
 
-function EventLogo({footer = false}: {footer?: boolean}) {
-  return <img className="event-lockup" src="/brand/primary.png"
-    srcSet="/brand/primary-210.webp 210w, /brand/primary-635.webp 635w"
-    sizes={footer ? 'clamp(162px, 15vw, 207px)' : '(max-width: 600px) clamp(122px, 37vw, 160px), clamp(160px, 13vw, 193px)'}
-    width="635" height="180" alt={event.title} />
+function EventIdentity({footer = false}: {footer?: boolean}) {
+  return <span className="event-identity">
+    <ConferenceLogo sizes={footer ? '64px' : '(max-width:600px) 40px, 52px'} alt=""/>
+    <span className="event-name">{event.title}</span>
+  </span>
 }
 
 function current(path: string, href: string) {
@@ -45,7 +46,7 @@ function SiteHeader({path}: {path: string}) {
     <div className="menu-shade" aria-hidden="true"></div>
     <div className="site-header-bar">
       <div className="site-header-inner">
-        <a className="site-identity" href="/" aria-label={event.title + ' home'}><EventLogo/></a>
+        <a className="site-identity" href="/" aria-label={event.title + ' home'}><EventIdentity/></a>
         <a className="faq-shortcut" href="/faq#search-questions">
           <svg aria-hidden="true" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="5.5"/><path d="m12.25 12.25 5 5"/></svg>
           Search attendee FAQs <span className="faq-shortcut-arrow" aria-hidden="true">→</span>
@@ -93,7 +94,7 @@ function SiteFooter() {
   const contact = safeUrl(event.contactUrl)
   return <footer className="site-footer" data-reveal="">
     <div className="site-footer-inner">
-      <EventLogo footer/>
+      <EventIdentity footer/>
       <nav className="footer-links" aria-label="Event information">
         <a href="/about">About</a><a href="/code-of-conduct">Code of Conduct</a><a href="/privacy">Privacy</a>
         {contact && <a href={contact}>Contact</a>}

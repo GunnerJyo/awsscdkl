@@ -2,6 +2,7 @@ import { event, faqs, organizingGroup, registration, safeUrl, sessions, speakers
 import { PartnerShowcase } from './PartnerShowcase'
 import type { PartnerGroup } from './partner-model'
 import { AgendaExplorer, SpeakerCards } from './Programme'
+import { ConferenceLogo, conferenceLogo } from './ConferenceLogo'
 import './home.css'
 
 const experiences = [
@@ -33,13 +34,12 @@ function EmblemPlate() {
           <path fill="#c9bcdf" d="M340 20h20v20h-20zM360 40h20v20h-20zM20 260h20v20H20zM40 280h20v20H40z"/>
         </g>
       </svg>
-      <picture className="home-emblem">
-        <source media="(max-width:1100px)" srcSet="/brand/shared-gaze-standard.svg" width="512" height="512"/>
-        <img src="/brand/shared-gaze-display.svg" width="720" height="720" fetchPriority="high"
-          alt="Shared Gaze combines a green Kathakali face and a vermilion Theyyam-inspired face."/>
-      </picture>
+      <div className="home-emblem">
+        <ConferenceLogo sizes={conferenceLogo.heroSizes} priority
+          alt="The Keralam 2027 conference emblem features a tiered gold crown above a green face framed in red, black and ivory."/>
+      </div>
     </div>
-    <figcaption><span><strong>Shared Gaze</strong><span className="home-art-medium">Kathakali × Theyyam</span></span><span lang="ml">കേരളം</span></figcaption>
+    <figcaption><strong>Conference emblem</strong><span lang="ml">കേരളം</span></figcaption>
   </figure>
 }
 

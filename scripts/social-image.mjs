@@ -8,11 +8,12 @@ async function embed(name, type) {
   const bytes = await readFile(new URL(name, brand))
   return 'data:' + type + ';base64,' + bytes.toString('base64')
 }
-const [sans, mono, malayalam, eventLogo, plate, border] = await Promise.all([
+const [sans, mono, malayalam, eventLogo, border] = await Promise.all([
   embed('fonts/IBMPlexSans-core.woff2','font/woff2'),
   embed('fonts/IBMPlexMono-Regular-core.woff2','font/woff2'),
   embed('fonts/NotoSansMalayalam-Keralam.woff2','font/woff2'),
-  embed('primary.png','image/png'), embed('hero-panel.svg','image/svg+xml'), embed('signature.svg','image/svg+xml'),
+  embed('conference-logo.png','image/png'),
+  embed('signature.svg','image/svg+xml'),
 ])
 const modules = await createSsrModules()
 try {
@@ -26,16 +27,20 @@ try {
       @font-face{font-family:Malayalam;src:url(${malayalam});font-weight:500}
       *{box-sizing:border-box}body{width:1200px;height:630px;margin:0;background:white;color:#080808;font:400 20px/1.5 Plex;position:relative}
       header{display:flex;align-items:center;justify-content:space-between;height:80px;padding:0 44px;border-bottom:1px solid #dddde0}
-      header img{width:168px;height:auto}header span{font:500 23px/1.4 Malayalam;color:#5732cb}
-      main{height:450px;display:grid;grid-template-columns:1.55fr 1fr;gap:40px;padding:26px 44px;align-items:center}
-      .distinction{font:400 22px/1.3 Mono;color:#5732cb;margin:0 0 20px}
-      h1{font:700 69px/.99 Plex;letter-spacing:-.045em;margin:0}h1 span{display:block}
-      .plate{justify-self:center;height:386px;width:auto}
+      header span{font:500 23px/1.4 Malayalam;color:#5732cb}
+      .distinction{font:400 19px/1.4 Mono;color:#5732cb;margin:0}
+      main{height:450px;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:40px;padding:22px 44px;align-items:center}
+      h1{font:700 83px/1.01 Plex;letter-spacing:-.045em;margin:0}h1 span{display:block}
+      .logo-plate{margin:0;position:relative;display:grid;place-items:center;width:400px;height:400px;border:1px solid #dddde0}
+      .logo-plate::before,.logo-plate::after{content:"";position:absolute;width:14px;height:14px;background:#dbd2ff}
+      .logo-plate::before{top:-1px;left:-1px}.logo-plate::after{bottom:-1px;right:-1px}
+      .event-logo{display:block;width:352px;height:352px;object-fit:contain}
       .credit{padding:14px 44px;margin:0;border-top:1px solid #dddde0;font:400 16px/1.5 Mono}
       footer{position:absolute;bottom:0;inset-inline:0;height:40px;background:url(${border}) center bottom/100% auto no-repeat}
-    </style><header><img alt="" src="${eventLogo}"><span lang="ml">കേരളം</span></header>
-    <main><section><p class="distinction"></p><h1><span></span><span></span><span></span></h1></section>
-    <img class="plate" src="${plate}" alt=""></main><p class="credit"></p><footer></footer></html>`)
+    </style><header><p class="distinction"></p><span lang="ml">കേരളം</span></header>
+    <main><h1><span></span><span></span><span></span></h1>
+    <figure class="logo-plate"><img class="event-logo" src="${eventLogo}" alt=""></figure></main>
+    <p class="credit"></p><footer></footer></html>`)
     await page.evaluate(async ({title,distinction,organizer}) => {
       const words=title.split(' ')
       const lines=[words.slice(0,2),words.slice(2,4),words.slice(4)]
